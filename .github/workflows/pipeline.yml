@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
       - name: Install dependencies
         run: npm install
       - name: Check style
@@ -22,3 +22,7 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm test
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npm run test:e2e

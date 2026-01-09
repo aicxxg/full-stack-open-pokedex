@@ -26,3 +26,5 @@ jobs:
         run: npx playwright install --with-deps
       - name: Run Playwright tests
         run: npm run test:e2e
+      - name: Trigger render deployment
+        run: curl ${{ secrets.render_hook_url }}

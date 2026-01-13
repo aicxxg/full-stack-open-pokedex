@@ -7,9 +7,13 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize]
+env:
+  is_skiping: ${{ contains(join(github.event.commits.*.message), '#skip') }}
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-latest
+    outputs:
+      job_tag_release_can_run: ${{ steps.final.outcome == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -29,15 +33,16 @@ jobs:
       - name: Run Playwright tests
         run: npm run test:e2e
       - name: Trigger render deployment
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && env.is_skiping == 'false' }}
+        id: final
         run: curl ${{ secrets.render_hook_url }}
   tag_release:
     needs: [simple_deployment_pipeline]
+    if: ${{ needs.simple_deployment_pipeline.outputs.job_tag_release_can_run == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Bump version and push tag
-        if: ${{ github.event_name == 'push' }}
         uses: anothrNick/github-tag-action@1.75.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
